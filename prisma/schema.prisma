@@ -1,0 +1,355 @@
+// TapBiz Prisma Schema
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  USER
+  ADMIN
+  SUPPORT
+}
+
+enum ProfileType {
+  BUSINESS
+  PERSONAL
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
+
+enum Theme {
+  CLASSIC
+  MODERN
+  ELEGANT
+  DARK
+  MINIMAL
+  BUSINESS
+}
+
+enum NfcTagStatus {
+  ACTIVE
+  INACTIVE
+  DISABLED
+  LOST
+}
+
+enum EventType {
+  PROFILE_VIEW
+  NFC_TAP
+  QR_SCAN
+  WHATSAPP_CLICK
+  PHONE_CLICK
+  EMAIL_CLICK
+  WEBSITE_CLICK
+  BOOKING_CREATED
+  PAYMENT_STARTED
+  REVIEW_SUBMITTED
+}
+
+enum ReviewStatus {
+  PUBLISHED
+  PENDING
+  HIDDEN
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentType {
+  SUBSCRIPTION
+  SERVICE
+  PRODUCT
+}
+
+enum PlanCode {
+  FREE
+  PRO
+  BUSINESS
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIAL
+  PAST_DUE
+  CANCELLED
+  EXPIRED
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  passwordHash  String
+  fullName      String
+  phone         String?
+  role          Role          @default(USER)
+  status        AccountStatus @default(ACTIVE)
+  emailVerified Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  profiles      Profile[]
+  nfcTags       NfcTag[]
+  payments      Payment[]
+  subscription  Subscription?
+  notifications Notification[]
+  auditLogs     AuditLog[]
+}
+
+model Profile {
+  id               String   @id @default(uuid())
+  userId           String
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username         String   @unique
+  profileType      ProfileType @default(BUSINESS)
+  businessName     String
+  personalTitle    String?
+  category         String
+  description      String?
+  avatarUrl        String?
+  aboutStory       String?
+  highlights       String?
+  galleryImages    String?
+  logoUrl          String?
+  coverUrl         String?
+  phone            String
+  whatsapp         String
+  email            String?
+  website          String?
+  address          String?
+  city             String?
+  state            String?
+  isVerified       Boolean  @default(false)
+  theme            Theme    @default(MODERN)
+  brandingDisabled Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  services        Service[]
+  products        Product[]
+  socialLinks     SocialLink[]
+  businessHours   BusinessHours[]
+  nfcTags         NfcTag[]
+  analyticsEvents AnalyticsEvent[]
+  reviews         Review[]
+  bookings        Booking[]
+  payments        Payment[]
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Float
+  duration    String?
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings Booking[]
+}
+
+model Product {
+  id          String   @id @default(uuid())
+  profileId   String
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  price       Float
+  imageUrl    String?
+  sku         String?
+  isAvailable Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SocialLink {
+  id        String  @id @default(uuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  platform  String
+  url       String
+  handle    String?
+}
+
+model BusinessHours {
+  id        String  @id @default(uuid())
+  profileId String
+  profile   Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  dayOfWeek Int // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  openTime  String? // e.g. "08:00"
+  closeTime String? // e.g. "18:00"
+  isClosed  Boolean @default(false)
+}
+
+model NfcTag {
+  id             String       @id @default(uuid())
+  userId         String
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  profileId      String
+  profile        Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  tagName        String
+  tagToken       String       @unique
+  destinationUrl String
+  status         NfcTagStatus @default(ACTIVE)
+  tapCount       Int          @default(0)
+  lastTappedAt   DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  analyticsEvents AnalyticsEvent[]
+}
+
+model AnalyticsEvent {
+  id             String    @id @default(uuid())
+  profileId      String
+  profile        Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  nfcTagId       String?
+  nfcTag         NfcTag?   @relation(fields: [nfcTagId], references: [id], onDelete: SetNull)
+  eventType      EventType
+  deviceCategory String? // Mobile, Desktop, Tablet
+  browser        String?
+  os             String?
+  referrer       String?
+  ipHash         String?
+  createdAt      DateTime  @default(now())
+}
+
+model Review {
+  id           String       @id @default(uuid())
+  profileId    String
+  profile      Profile      @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  rating       Int // 1 to 5
+  customerName String
+  comment      String
+  status       ReviewStatus @default(PUBLISHED)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  reply ReviewReply?
+}
+
+model ReviewReply {
+  id        String   @id @default(uuid())
+  reviewId  String   @unique
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  replyText String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Booking {
+  id            String        @id @default(uuid())
+  profileId     String
+  profile       Profile       @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  serviceId     String?
+  service       Service?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  customerName  String
+  customerPhone String
+  customerEmail String?
+  bookingDate   String // YYYY-MM-DD
+  bookingTime   String // HH:mm
+  notes         String?
+  status        BookingStatus @default(PENDING)
+  totalPrice    Float         @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  userId        String?
+  user          User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  profileId     String?
+  profile       Profile?      @relation(fields: [profileId], references: [id], onDelete: SetNull)
+  reference     String        @unique
+  amount        Float
+  currency      String        @default("NGN")
+  status        PaymentStatus @default(PENDING)
+  paymentType   PaymentType   @default(SUBSCRIPTION)
+  customerEmail String
+  metadata      String? // JSON string
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model SubscriptionPlan {
+  id               String   @id @default(uuid())
+  code             PlanCode @unique
+  name             String
+  priceMonthly     Float
+  priceYearly      Float
+  profileLimit     Int
+  serviceLimit     Int
+  productLimit     Int
+  nfcLimit         Int
+  brandingRemovable Boolean @default(false)
+  analyticsLevel   String   @default("BASIC") // BASIC, ADVANCED, ENTERPRISE
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id              String             @id @default(uuid())
+  userId          String             @unique
+  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  planId          String
+  plan            SubscriptionPlan   @relation(fields: [planId], references: [id])
+  status          SubscriptionStatus @default(ACTIVE)
+  currentPeriodEnd DateTime          @default(now())
+  paystackSubCode String?
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  icon      String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action    String
+  details   String?
+  ipAddress String?
+  createdAt DateTime @default(now())
+}
