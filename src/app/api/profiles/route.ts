@@ -140,6 +140,23 @@ export async function PATCH(req: Request) {
       },
     });
 
+    const { socialLinks } = body;
+    if (Array.isArray(socialLinks)) {
+      await prisma.socialLink.deleteMany({ where: { profileId: id } });
+      if (socialLinks.length > 0) {
+        await prisma.socialLink.createMany({
+          data: socialLinks
+            .filter((sl: any) => sl.platform && sl.url)
+            .map((sl: any) => ({
+              profileId: id,
+              platform: sl.platform.trim(),
+              url: sl.url.trim(),
+              handle: sl.handle ? sl.handle.trim() : null,
+            })),
+        });
+      }
+    }
+
     return NextResponse.json({ success: true, profile: updated });
   } catch (err: any) {
     console.error('Update Profile Error:', err);

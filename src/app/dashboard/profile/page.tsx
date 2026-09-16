@@ -338,7 +338,109 @@ export default function ProfileBuilderPage() {
           </div>
         </div>
 
-        {/* Visual Theme Selection */}
+        {/* Social Media Channels & Handles Section */}
+        <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div>
+              <h2 className="text-base font-bold text-white">Social Media Channels & Handles</h2>
+              <p className="text-xs text-slate-400">Connect your official social media pages so customers can follow and message you.</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                const current = profile.socialLinks || [];
+                setProfile({
+                  ...profile,
+                  socialLinks: [...current, { platform: 'Instagram', url: '', handle: '' }],
+                });
+              }}
+              className="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-slate-950 font-bold px-3.5 py-2 rounded-xl border border-emerald-500/20 text-xs transition"
+            >
+              + Add Social Link
+            </button>
+          </div>
+
+          {(profile.socialLinks || []).length > 0 ? (
+            <div className="space-y-3">
+              {(profile.socialLinks || []).map((s: any, idx: number) => (
+                <div key={idx} className="bg-slate-950 border border-slate-800 rounded-2xl p-4 grid grid-cols-1 sm:grid-cols-12 gap-3 items-center">
+                  <div className="sm:col-span-3">
+                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Platform</label>
+                    <select
+                      value={s.platform || 'Instagram'}
+                      onChange={(e) => {
+                        const current = [...(profile.socialLinks || [])];
+                        current[idx] = { ...current[idx], platform: e.target.value };
+                        setProfile({ ...profile, socialLinks: current });
+                      }}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-semibold"
+                    >
+                      <option value="Instagram">Instagram</option>
+                      <option value="Facebook">Facebook</option>
+                      <option value="WhatsApp">WhatsApp</option>
+                      <option value="X (Twitter)">X (Twitter)</option>
+                      <option value="LinkedIn">LinkedIn</option>
+                      <option value="YouTube">YouTube</option>
+                      <option value="TikTok">TikTok</option>
+                      <option value="Threads">Threads</option>
+                      <option value="Pinterest">Pinterest</option>
+                      <option value="Website">Website</option>
+                    </select>
+                  </div>
+
+                  <div className="sm:col-span-5">
+                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Profile Link / URL</label>
+                    <input
+                      type="url"
+                      placeholder="https://instagram.com/yourhandle"
+                      value={s.url || ''}
+                      onChange={(e) => {
+                        const current = [...(profile.socialLinks || [])];
+                        current[idx] = { ...current[idx], url: e.target.value };
+                        setProfile({ ...profile, socialLinks: current });
+                      }}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-3">
+                    <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Handle / Username</label>
+                    <input
+                      type="text"
+                      placeholder="@yourhandle"
+                      value={s.handle || ''}
+                      onChange={(e) => {
+                        const current = [...(profile.socialLinks || [])];
+                        current[idx] = { ...current[idx], handle: e.target.value };
+                        setProfile({ ...profile, socialLinks: current });
+                      }}
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono"
+                    />
+                  </div>
+
+                  <div className="sm:col-span-1 flex justify-end pt-3 sm:pt-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const current = [...(profile.socialLinks || [])];
+                        current.splice(idx, 1);
+                        setProfile({ ...profile, socialLinks: current });
+                      }}
+                      className="p-2 rounded-xl bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white transition"
+                      title="Remove Social Link"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-6 bg-slate-950/60 border border-dashed border-slate-800 rounded-2xl text-xs text-slate-500">
+              No social media links added yet. Click "+ Add Social Link" to showcase your Instagram, Facebook, LinkedIn, TikTok, or YouTube handles.
+            </div>
+          )}
+        </div>
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 space-y-4">
           <h2 className="text-base font-bold text-white border-b border-slate-800 pb-3">Visual Profile Theme</h2>
 

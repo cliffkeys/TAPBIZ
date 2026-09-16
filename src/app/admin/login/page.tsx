@@ -6,8 +6,8 @@ import { ShieldCheck, Lock, User, Key, AlertTriangle, ArrowRight } from 'lucide-
 
 export default function AdminLoginPage() {
   const router = useRouter();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -60,9 +60,8 @@ export default function AdminLoginPage() {
 
         <form onSubmit={handleAdminLogin} className="space-y-5">
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
               <span>Admin Username / Email</span>
-              <span className="text-[10px] text-amber-400 font-mono">admin</span>
             </label>
             <div className="relative">
               <User className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -71,16 +70,15 @@ export default function AdminLoginPage() {
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
+                placeholder="Enter admin username"
                 className="w-full bg-slate-950/80 border border-slate-800 rounded-2xl pl-10 pr-4 py-3 text-sm text-white placeholder-slate-600 focus:outline-none focus:border-amber-500/60 focus:ring-1 focus:ring-amber-500/40 transition font-mono"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2 flex items-center justify-between">
+            <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider mb-2">
               <span>Master Password</span>
-              <span className="text-[10px] text-amber-400 font-mono">admin123</span>
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
