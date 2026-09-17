@@ -205,10 +205,17 @@ export default function BookingsManagerPage() {
       {filteredBookings.length > 0 ? (
         <div className="space-y-4">
           {filteredBookings.map((b) => {
-            const formattedPhone = b.customerPhone ? b.customerPhone.replace(/[^0-9]/g, '') : '';
+            const formatWaNumber = (num: string) => {
+              let d = num.replace(/[^0-9]/g, '');
+              if (d.startsWith('0') && d.length === 11) d = '234' + d.slice(1);
+              if (d.length === 10) d = '234' + d;
+              return d;
+            };
+            const formattedPhone = b.customerPhone ? formatWaNumber(b.customerPhone) : '';
             const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(
               `Hello ${b.customerName}, regarding your appointment booking for ${b.bookingDate} at ${b.bookingTime} with ${profile?.businessName || 'us'}:`
             )}`;
+
 
             return (
               <div

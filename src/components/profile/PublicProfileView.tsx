@@ -190,11 +190,26 @@ export function PublicProfileView({ profile }: { profile: ProfileData }) {
         .filter((s) => s.length > 0)
     : [];
 
-  // WhatsApp formatted link
-  const formattedWhatsapp = profile.whatsapp.replace(/[^0-9]/g, '');
+  // WhatsApp formatted link — wa.me requires international format (no +, no leading 0)
+  // Handles: 09164310578 → 2349164310578 | +2349164310578 → 2349164310578 | 2349164310578 → 2349164310578
+  const formatWhatsappNumber = (num: string): string => {
+    // Strip everything except digits
+    let digits = num.replace(/[^0-9]/g, '');
+    // Nigerian local format: starts with 0 and is 11 digits → replace 0 with 234
+    if (digits.startsWith('0') && digits.length === 11) {
+      digits = '234' + digits.slice(1);
+    }
+    // If it somehow doesn't have a country code yet (10 digits), assume Nigeria
+    if (digits.length === 10) {
+      digits = '234' + digits;
+    }
+    return digits;
+  };
+  const formattedWhatsapp = formatWhatsappNumber(profile.whatsapp);
   const whatsappUrl = `https://wa.me/${formattedWhatsapp}?text=${encodeURIComponent(
     `Hello ${profile.businessName}, I found your digital profile and would like to connect.`
   )}`;
+
 
   const handleShare = async () => {
     const shareUrl = window.location.href;
