@@ -15,7 +15,7 @@
   },
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
-    "@prisma/adapter-neon": "^7.10.0",
+    "@prisma/adapter-neon": "^6.4.0",
     "@prisma/client": "6.4.0",
     "@types/bcryptjs": "^2.4.6",
     "@types/qrcode": "^1.5.6",
