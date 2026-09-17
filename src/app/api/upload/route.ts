@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSessionUser } from '@/lib/auth';
-import { writeFile, mkdir } from 'fs/promises';
+import { put } from '@vercel/blob';
 import path from 'path';
 
 export async function POST(req: Request) {
@@ -20,33 +20,35 @@ export async function POST(req: Request) {
     // Validate file type
     const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/svg+xml'];
     if (!validTypes.includes(file.type)) {
-      return NextResponse.json({ error: 'Invalid file type. Only PNG, JPG, WEBP, GIF, and SVG images are allowed.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'Invalid file type. Only PNG, JPG, WEBP, GIF, and SVG images are allowed.' },
+        { status: 400 }
+      );
     }
 
-    // Validate file size (10MB limit)
+    // Validate file size (10 MB limit)
     if (file.size > 10 * 1024 * 1024) {
-      return NextResponse.json({ error: 'File size exceeds maximum limit of 10MB.' }, { status: 400 });
+      return NextResponse.json(
+        { error: 'File size exceeds maximum limit of 10MB.' },
+        { status: 400 }
+      );
     }
 
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
-
-    // Create unique filename
+    // Create a unique pathname for Vercel Blob
     const ext = path.extname(file.name) || '.jpg';
     const cleanExt = ext.toLowerCase().replace(/[^a-z0-9.]/g, '');
-    const filename = `upload_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
+    const filename = `uploads/upload_${Date.now()}_${Math.random().toString(36).substring(2, 8)}${cleanExt}`;
 
-    // Ensure public/uploads directory exists
-    const uploadsDir = path.join(process.cwd(), 'public', 'uploads');
-    await mkdir(uploadsDir, { recursive: true });
+    // Upload to Vercel Blob (works in serverless / read-only environments)
+    const blob = await put(filename, file, {
+      access: 'public',
+      contentType: file.type,
+    });
 
-    const filePath = path.join(uploadsDir, filename);
-    await writeFile(filePath, buffer);
-
-    const publicUrl = `/uploads/${filename}`;
-    return NextResponse.json({ success: true, url: publicUrl, filename });
-  } catch (err: any) {
+    return NextResponse.json({ success: true, url: blob.url, filename: blob.pathname });
+  } catch (err: unknown) {
     console.error('File Upload Error:', err);
-    return NextResponse.json({ error: err.message || 'Error processing file upload' }, { status: 500 });
+    const message = err instanceof Error ? err.message : 'Error processing file upload';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
